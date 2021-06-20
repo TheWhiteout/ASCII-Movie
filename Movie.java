@@ -1,5 +1,7 @@
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -13,9 +15,11 @@ public class Movie {
 
 	static long start = 0l;
 	static long end = 0l;
+	static boolean check = true;
+	static JFrame frame = new JFrame("ASCII Movie");
 
 	public static void main(String[] args) throws IOException {
-		JFrame frame = new JFrame("ASCII Movie");
+
 		frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setUndecorated(true);
@@ -69,7 +73,55 @@ public class Movie {
 		 * for (int i = 0; i < 3171; i++) { movie.setText(show[i]); }
 		 */
 		MyTimer timer = new MyTimer(show);
-		frame.add(timer.movie);
+		frame.getContentPane().add(timer.movie);
+		frame.getContentPane().setFocusable(true);
+		frame.getContentPane().addKeyListener(new KeyListener() {
+
+			@Override
+			public void keyPressed(KeyEvent event) {
+				if (event.getKeyCode() == KeyEvent.VK_A) {
+					if (check) {
+						timer.stop();
+						check = false;
+						System.out.println("Paused");
+					} else {
+						timer.start();
+						check = true;
+						System.out.println("Resumed");
+					}
+
+				}
+				if (event.getKeyCode() == KeyEvent.VK_Q) {
+					timer.nextFrame();
+				}
+				if (event.getKeyCode() == KeyEvent.VK_W) {
+					timer.prevFrame();
+				}
+				if (event.getKeyCode() == KeyEvent.VK_E) {
+					timer.skipForwards();
+				}
+				if (event.getKeyCode() == KeyEvent.VK_R) {
+					timer.skipBackwards();
+				}
+				if (event.getKeyCode() == KeyEvent.VK_D) {
+					try {
+						timer.downloadCurrentFrame();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
+
+			@Override
+			public void keyReleased(KeyEvent arg0) {
+			}
+
+			@Override
+			public void keyTyped(KeyEvent arg0) {
+			}
+
+		});
 		frame.setVisible(true);
 		start = System.currentTimeMillis();
 		timer.start();
@@ -108,6 +160,10 @@ public class Movie {
 			graphics2D.dispose();
 		}
 		return scaledImage;
+	}
+
+	public static void movieEnd() {
+		frame.dispose();
 	}
 
 }
