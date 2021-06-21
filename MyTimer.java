@@ -17,9 +17,9 @@ public class MyTimer implements ActionListener {
 	int count = 0;
 
 	MyTimer(String[] array) {
-		timer = new Timer(31, this);
-		movie.setBounds(0, 0, 2560, 1440);
-		movie.setFont(new Font("Courier New", Font.PLAIN, 10));
+		timer = new Timer(Movie.timerDelay, this);
+		Movie.setBoundsScreen(movie, 0, 0, 2560, 1440);
+		movie.setFont(new Font("Courier New", Font.PLAIN, Movie.fontSize));
 		movie.setForeground(Color.white);
 		movie.setVerticalAlignment(JLabel.CENTER);
 		movie.setHorizontalAlignment(JLabel.CENTER);
@@ -36,7 +36,8 @@ public class MyTimer implements ActionListener {
 
 	public void nextFrame() {
 		count++;
-		if (count > 3170) {
+		if (count > Movie.frameCount - 1) {
+			count = Movie.frameCount - 1;
 			this.stop();
 			Movie.movieEnd();
 		}
@@ -53,7 +54,8 @@ public class MyTimer implements ActionListener {
 
 	public void skipForwards() {
 		count += 125;
-		if (count > 3170) {
+		if (count > Movie.frameCount - 1) {
+			count = Movie.frameCount - 1;
 			this.stop();
 			Movie.movieEnd();
 		}
@@ -68,6 +70,8 @@ public class MyTimer implements ActionListener {
 		movie.setText(show[count]);
 	}
 
+	// video control
+
 	public void downloadCurrentFrame() throws IOException {
 		File text = new File("text.txt");
 		text.createNewFile();
@@ -78,7 +82,7 @@ public class MyTimer implements ActionListener {
 	// While the timer is running this method will be executing
 	public void actionPerformed(ActionEvent e) {
 		movie.setText(show[count++]);
-		if (count > 3170) {
+		if (count > Movie.frameCount - 1) {
 			this.stop();
 			Movie.movieEnd();
 			Movie.end = System.currentTimeMillis();

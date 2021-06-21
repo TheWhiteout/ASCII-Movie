@@ -1,22 +1,40 @@
 import java.awt.Color;
-import java.awt.Graphics2D;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
+import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
 
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.Java2DFrameConverter;
 
 public class Movie {
 
+	static Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 	static long start = 0l;
 	static long end = 0l;
 	static boolean check = true;
 	static JFrame frame = new JFrame("ASCII Movie");
+	static double ratio = screenSize.getHeight() / 1440;
+	static MyTimer timer;
+	static int coefficientPixelUnion = 1;
+	static String address;
+	static int videoHeight;
+	static int videoWidth;
+	static int frameCount;
+	static int fontSize;
+	static int timerDelay;
 
 	public static void main(String[] args) throws IOException {
 
@@ -25,145 +43,249 @@ public class Movie {
 		frame.setUndecorated(true);
 		frame.getContentPane().setLayout(null);
 		frame.getContentPane().setBackground(Color.BLACK);
-		/*
-		 * JLabel movie = new JLabel(); movie.setBounds(0, 0, 2560, 1440);
-		 * movie.setFont(new Font("Courier New", Font.PLAIN, 10));
-		 * movie.setForeground(Color.white); movie.setVerticalAlignment(JLabel.CENTER);
-		 * movie.setHorizontalAlignment(JLabel.CENTER); frame.add(movie);
-		 */
-		char[] ascii = " .,:;ox%#@".toCharArray();
 
-		String[] show = new String[3171];
-		// 196 248
-		// 196 068
-		StringBuilder sb = new StringBuilder("<html>");
+		JFrame startFrame = new JFrame("ASCII Movie");
+		startFrame.setSize(500, 300);
+		startFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		startFrame.setResizable(false);
+		startFrame.getContentPane().setLayout(null);
+		startFrame.getContentPane().setBackground(Color.BLACK);
 
-		File file = new File("C:\\Users\\Whiteout\\Downloads\\hey video.mp4");
-		Java2DFrameConverter c = new Java2DFrameConverter();
+		JTextField addressField = new JTextField();
+		addressField.setBounds(113, 24, 330, 24);
+		startFrame.getContentPane().add(addressField);
 
-		FFmpegFrameGrabber g = new FFmpegFrameGrabber(file);
-		g.start();
+		JLabel lblNewLabel = new JLabel("Address:");
+		lblNewLabel.setFont(new Font("Tahoma", Font.BOLD, 20));
+		lblNewLabel.setForeground(Color.WHITE);
+		lblNewLabel.setBounds(10, 20, 93, 25);
+		startFrame.getContentPane().add(lblNewLabel);
 
-		for (int i = 0; i < 3171; i++) {
-			BufferedImage image = c.convert(g.grabImage());
+		JLabel lblCpu = new JLabel("CPU:");
+		lblCpu.setForeground(Color.WHITE);
+		lblCpu.setFont(new Font("Tahoma", Font.BOLD, 20));
+		lblCpu.setBounds(259, 132, 48, 25);
+		startFrame.getContentPane().add(lblCpu);
 
-			for (int y = 0; y < 360; y += 5) {
-				for (int x = 0; x < 480; x += 2) {
-					/*
-					 * // Retrieving contents of a pixel int pixel = image.getRGB(x, y); // Creating
-					 * a Color object from pixel value Color color = new Color(pixel, true); //
-					 * Retrieving the R G B values int red = color.getRed(); int green =
-					 * color.getGreen(); int blue = color.getBlue(); double gray = 0.299 * red +
-					 * 0.587 * green + 0.114 * blue;
-					 */
-					sb.append(ascii[(int) ((joinGrayPixels(image, x, y)) * 10 / 256)]);
-				}
-				sb.append("<br>");
-			}
-			sb.append("</html>");
-			show[i] = sb.toString();
-			// movie.setText(sb.toString());
-			sb = new StringBuilder("<html><div style='text-align: center;'>");
-			System.out.println(i);
-		}
+		JLabel lblHeigth = new JLabel("Height:");
+		lblHeigth.setForeground(Color.WHITE);
+		lblHeigth.setFont(new Font("Tahoma", Font.BOLD, 20));
+		lblHeigth.setBounds(10, 60, 74, 25);
+		startFrame.getContentPane().add(lblHeigth);
 
-		System.out.println("Loaded!");
+		JLabel lblWidth = new JLabel("Width:");
+		lblWidth.setForeground(Color.WHITE);
+		lblWidth.setFont(new Font("Tahoma", Font.BOLD, 20));
+		lblWidth.setBounds(259, 60, 74, 25);
+		startFrame.getContentPane().add(lblWidth);
 
-		/*
-		 * for (int i = 0; i < 3171; i++) { movie.setText(show[i]); }
-		 */
-		MyTimer timer = new MyTimer(show);
-		frame.getContentPane().add(timer.movie);
-		frame.getContentPane().setFocusable(true);
-		frame.getContentPane().addKeyListener(new KeyListener() {
+		JTextField widthField = new JTextField();
+		widthField.setColumns(10);
+		widthField.setBounds(369, 63, 74, 24);
+		startFrame.getContentPane().add(widthField);
 
-			@Override
-			public void keyPressed(KeyEvent event) {
-				if (event.getKeyCode() == KeyEvent.VK_A) {
-					if (check) {
-						timer.stop();
-						check = false;
-						System.out.println("Paused");
-					} else {
-						timer.start();
-						check = true;
-						System.out.println("Resumed");
+		JLabel lblFrameCount = new JLabel("Frame Count:");
+		lblFrameCount.setForeground(Color.WHITE);
+		lblFrameCount.setFont(new Font("Tahoma", Font.BOLD, 20));
+		lblFrameCount.setBounds(10, 96, 136, 25);
+		startFrame.getContentPane().add(lblFrameCount);
+
+		JTextField frameCountField = new JTextField();
+		frameCountField.setColumns(10);
+		frameCountField.setBounds(156, 95, 87, 24);
+		startFrame.getContentPane().add(frameCountField);
+
+		JLabel lblFontSize = new JLabel("Font Size:");
+		lblFontSize.setForeground(Color.WHITE);
+		lblFontSize.setFont(new Font("Tahoma", Font.BOLD, 20));
+		lblFontSize.setBounds(259, 96, 109, 25);
+		startFrame.getContentPane().add(lblFontSize);
+
+		JTextField fontSizeField = new JTextField();
+		fontSizeField.setColumns(10);
+		fontSizeField.setBounds(369, 98, 74, 24);
+		startFrame.getContentPane().add(fontSizeField);
+
+		JLabel lblTimerDelay = new JLabel("Timer Delay:");
+		lblTimerDelay.setForeground(Color.WHITE);
+		lblTimerDelay.setFont(new Font("Tahoma", Font.BOLD, 20));
+		lblTimerDelay.setBounds(10, 132, 136, 25);
+		startFrame.getContentPane().add(lblTimerDelay);
+
+		JTextField timerDelayField = new JTextField();
+		timerDelayField.setColumns(10);
+		timerDelayField.setBounds(156, 130, 87, 24);
+		startFrame.getContentPane().add(timerDelayField);
+
+		JTextField CPUField = new JTextField();
+		CPUField.setColumns(10);
+		CPUField.setBounds(369, 132, 74, 24);
+		startFrame.getContentPane().add(CPUField);
+
+		JTextField heightField = new JTextField();
+		heightField.setColumns(10);
+		heightField.setBounds(156, 60, 87, 24);
+		startFrame.getContentPane().add(heightField);
+
+		JButton set = new JButton("Set");
+		set.setFont(new Font("Tahoma", Font.BOLD, 20));
+		set.setBounds(103, 200, 100, 40);
+		set.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					address = addressField.getText();
+					coefficientPixelUnion = Integer.parseInt(CPUField.getText());
+					videoHeight = Integer.parseInt(heightField.getText());
+					videoWidth = Integer.parseInt(widthField.getText());
+					frameCount = Integer.parseInt(frameCountField.getText());
+					fontSize = Integer.parseInt(fontSizeField.getText());
+					timerDelay = Integer.parseInt(timerDelayField.getText());
+
+					char[] ascii = " .,:;ox%#@".toCharArray();
+
+					String[] show = new String[frameCount];
+
+					StringBuilder sb = new StringBuilder("<html>");
+
+					File file = new File(address);
+					Java2DFrameConverter c = new Java2DFrameConverter();
+
+					FFmpegFrameGrabber g = new FFmpegFrameGrabber(file);
+					g.start();
+
+					for (int i = 0; i < frameCount; i++) {
+						BufferedImage image = c.convert(g.grabImage());
+
+						for (int y = 0; y < videoHeight; y += 5 * coefficientPixelUnion) {
+							for (int x = 0; x < videoWidth; x += 2 * coefficientPixelUnion) {
+								/*
+								 * // Retrieving contents of a pixel int pixel = image.getRGB(x, y); // Creating
+								 * a Color object from pixel value Color color = new Color(pixel, true); //
+								 * Retrieving the R G B values int red = color.getRed(); int green =
+								 * color.getGreen(); int blue = color.getBlue(); double gray = 0.299 * red +
+								 * 0.587 * green + 0.114 * blue;
+								 */
+								sb.append(ascii[(int) ((joinGrayPixels(image, x, y)) * 10 / 256)]);
+							}
+							sb.append("<br>");
+						}
+						sb.append("</html>");
+						show[i] = sb.toString();
+						sb = new StringBuilder("<html>");
+						System.out.println(i);
 					}
 
-				}
-				if (event.getKeyCode() == KeyEvent.VK_Q) {
-					timer.nextFrame();
-				}
-				if (event.getKeyCode() == KeyEvent.VK_W) {
-					timer.prevFrame();
-				}
-				if (event.getKeyCode() == KeyEvent.VK_E) {
-					timer.skipForwards();
-				}
-				if (event.getKeyCode() == KeyEvent.VK_R) {
-					timer.skipBackwards();
-				}
-				if (event.getKeyCode() == KeyEvent.VK_D) {
-					try {
-						timer.downloadCurrentFrame();
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
-			}
+					System.out.println("Loaded!");
 
-			@Override
-			public void keyReleased(KeyEvent arg0) {
-			}
+					timer = new MyTimer(show);
+					frame.getContentPane().add(timer.movie);
+					frame.getContentPane().setFocusable(true);
+					frame.getContentPane().addKeyListener(new KeyListener() {
 
-			@Override
-			public void keyTyped(KeyEvent arg0) {
-			}
+						@Override
+						public void keyPressed(KeyEvent event) {
+							if (event.getKeyCode() == KeyEvent.VK_A) {
+								if (check) {
+									timer.stop();
+									check = false;
+								} else {
+									timer.start();
+									check = true;
+								}
 
+							}
+							if (event.getKeyCode() == KeyEvent.VK_Q) {
+								timer.nextFrame();
+							}
+							if (event.getKeyCode() == KeyEvent.VK_W) {
+								timer.prevFrame();
+							}
+							if (event.getKeyCode() == KeyEvent.VK_E) {
+								timer.skipForwards();
+							}
+							if (event.getKeyCode() == KeyEvent.VK_R) {
+								timer.skipBackwards();
+							}
+							if (event.getKeyCode() == KeyEvent.VK_D) {
+								try {
+									timer.downloadCurrentFrame();
+								} catch (IOException e) {
+									e.printStackTrace();
+								}
+							}
+						}
+
+						@Override
+						public void keyReleased(KeyEvent arg0) {
+						}
+
+						@Override
+						public void keyTyped(KeyEvent arg0) {
+						}
+
+					});
+				} catch (Exception e1) {
+					throw new IncorrectDataEnteredException("Enter correct data!", e1);
+				}
+
+			}
 		});
-		frame.setVisible(true);
-		start = System.currentTimeMillis();
-		timer.start();
+		startFrame.getContentPane().add(set);
+
+		// Show main frame, start timer and close start frame
+		JButton play = new JButton("Play");
+		play.setBounds(283, 200, 100, 40);
+		play.setFont(new Font("Tahoma", Font.BOLD, 20));
+		play.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					frame.setVisible(true);
+					timer.start();
+					start = System.currentTimeMillis();
+					startFrame.dispose();
+				} catch (Exception e1) {
+					startFrame.dispose();
+					frame.dispose();
+					throw new IncorrectDataEnteredException("Enter correct data!", e1);
+				}
+			}
+		});
+		startFrame.add(play);
+
+		// Setting the start frame visibility to true
+		startFrame.setVisible(true);
+
 	}
 
 	public static double joinGrayPixels(BufferedImage image, int x, int y) {
 
-		Color color1 = new Color(image.getRGB(x, y));
-		Color color2 = new Color(image.getRGB(x, y + 1));
-		Color color3 = new Color(image.getRGB(x, y + 2));
-		Color color4 = new Color(image.getRGB(x, y + 3));
-		Color color5 = new Color(image.getRGB(x, y + 4));
-		Color color6 = new Color(image.getRGB(x + 1, y));
-		Color color7 = new Color(image.getRGB(x + 1, y + 1));
-		Color color8 = new Color(image.getRGB(x + 1, y + 2));
-		Color color9 = new Color(image.getRGB(x + 1, y + 3));
-		Color color10 = new Color(image.getRGB(x + 1, y + 4));
-
-		return 0.0299
-				* (color1.getRed() + color2.getRed() + color3.getRed() + color4.getRed() + color5.getRed()
-						+ color6.getRed() + color7.getRed() + color8.getRed() + color9.getRed() + color10.getRed())
-				+ 0.0587 * (color1.getGreen() + color2.getGreen() + color3.getGreen() + color4.getGreen()
-						+ color5.getGreen() + color6.getGreen() + color7.getGreen() + color8.getGreen()
-						+ color9.getGreen() + color10.getGreen())
-				+ 0.0114 * (color1.getBlue() + color2.getBlue() + color3.getBlue() + color4.getBlue() + color5.getBlue()
-						+ color6.getBlue() + color7.getBlue() + color8.getBlue() + color9.getBlue()
-						+ color10.getBlue());
-	}
-
-	public static BufferedImage scale(BufferedImage imageToScale, int dWidth, int dHeight) {
-		BufferedImage scaledImage = null;
-		if (imageToScale != null) {
-			scaledImage = new BufferedImage(dWidth, dHeight, imageToScale.getType());
-			Graphics2D graphics2D = scaledImage.createGraphics();
-			graphics2D.drawImage(imageToScale, 0, 0, dWidth, dHeight, null);
-			graphics2D.dispose();
+		int redSum = 0;
+		int greenSum = 0;
+		int blueSum = 0;
+		for (int i = 0; i < 10 * coefficientPixelUnion * coefficientPixelUnion; i++) {
+			Color color = new Color(
+					image.getRGB(x + i / (coefficientPixelUnion * 5), y + i % (coefficientPixelUnion * 5)));
+			redSum += color.getRed();
+			greenSum += color.getGreen();
+			blueSum += color.getBlue();
 		}
-		return scaledImage;
+
+		return (0.0299 * redSum + 0.0587 * greenSum + 0.0114 * blueSum)
+				/ (coefficientPixelUnion * coefficientPixelUnion);
+
 	}
 
 	public static void movieEnd() {
 		frame.dispose();
+	}
+
+	static int screen(int original) {
+		int ready = (int) (original * ratio);
+		return ready;
+	}
+
+	static void setBoundsScreen(JComponent component, int x, int y, int width, int height) {
+		component.setBounds(screen(x), screen(y), screen(width), screen(height));
 	}
 
 }
