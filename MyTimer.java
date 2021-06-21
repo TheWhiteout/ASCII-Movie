@@ -19,7 +19,7 @@ public class MyTimer implements ActionListener {
 	MyTimer(String[] array) {
 		timer = new Timer(Movie.timerDelay, this);
 		Movie.setBoundsScreen(movie, 0, 0, 2560, 1440);
-		movie.setFont(new Font("Courier New", Font.PLAIN, Movie.fontSize));
+		movie.setFont(new Font("Courier New", Font.PLAIN, Movie.fontSize)); // Using monospaced font
 		movie.setForeground(Color.white);
 		movie.setVerticalAlignment(JLabel.CENTER);
 		movie.setHorizontalAlignment(JLabel.CENTER);
@@ -34,6 +34,7 @@ public class MyTimer implements ActionListener {
 		timer.stop();
 	}
 
+	// video control
 	public void nextFrame() {
 		count++;
 		if (count > Movie.frameCount - 1) {
@@ -70,8 +71,7 @@ public class MyTimer implements ActionListener {
 		movie.setText(show[count]);
 	}
 
-	// video control
-
+	// Export current frame as txt file
 	public void downloadCurrentFrame() throws IOException {
 		File text = new File("text.txt");
 		text.createNewFile();

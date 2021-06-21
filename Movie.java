@@ -21,6 +21,7 @@ import org.bytedeco.javacv.Java2DFrameConverter;
 
 public class Movie {
 
+	// Fields
 	static Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 	static long start = 0l;
 	static long end = 0l;
@@ -28,7 +29,7 @@ public class Movie {
 	static JFrame frame = new JFrame("ASCII Movie");
 	static double ratio = screenSize.getHeight() / 1440;
 	static MyTimer timer;
-	static int coefficientPixelUnion = 1;
+	static int coefficientPixelUnion = 1; // CPU
 	static String address;
 	static int videoHeight;
 	static int videoWidth;
@@ -38,12 +39,14 @@ public class Movie {
 
 	public static void main(String[] args) throws IOException {
 
+		// Setting up main frame
 		frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setUndecorated(true);
 		frame.getContentPane().setLayout(null);
 		frame.getContentPane().setBackground(Color.BLACK);
 
+		// Setting up start frame
 		JFrame startFrame = new JFrame("ASCII Movie");
 		startFrame.setSize(500, 300);
 		startFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -51,6 +54,7 @@ public class Movie {
 		startFrame.getContentPane().setLayout(null);
 		startFrame.getContentPane().setBackground(Color.BLACK);
 
+		// Here the user will enter the values of all the fields
 		JTextField addressField = new JTextField();
 		addressField.setBounds(113, 24, 330, 24);
 		startFrame.getContentPane().add(addressField);
@@ -127,6 +131,7 @@ public class Movie {
 		heightField.setBounds(156, 60, 87, 24);
 		startFrame.getContentPane().add(heightField);
 
+		// Finish entering values and convert file into string array
 		JButton set = new JButton("Set");
 		set.setFont(new Font("Tahoma", Font.BOLD, 20));
 		set.setBounds(103, 200, 100, 40);
@@ -141,13 +146,18 @@ public class Movie {
 					fontSize = Integer.parseInt(fontSizeField.getText());
 					timerDelay = Integer.parseInt(timerDelayField.getText());
 
+					// "Map" of symbols this app is using. Ordered by brightness (number of pixels
+					// in each symbol)
 					char[] ascii = " .,:;ox%#@".toCharArray();
 
 					String[] show = new String[frameCount];
 
+					// Using html formating to allow new lines in a label
 					StringBuilder sb = new StringBuilder("<html>");
 
+					// Create file object from movie and convert it into string array frame by frame
 					File file = new File(address);
+
 					Java2DFrameConverter c = new Java2DFrameConverter();
 
 					FFmpegFrameGrabber g = new FFmpegFrameGrabber(file);
@@ -158,13 +168,10 @@ public class Movie {
 
 						for (int y = 0; y < videoHeight; y += 5 * coefficientPixelUnion) {
 							for (int x = 0; x < videoWidth; x += 2 * coefficientPixelUnion) {
-								/*
-								 * // Retrieving contents of a pixel int pixel = image.getRGB(x, y); // Creating
-								 * a Color object from pixel value Color color = new Color(pixel, true); //
-								 * Retrieving the R G B values int red = color.getRed(); int green =
-								 * color.getGreen(); int blue = color.getBlue(); double gray = 0.299 * red +
-								 * 0.587 * green + 0.114 * blue;
-								 */
+
+								// Retrieve contents of each pixel in a frame. Join groups of pixels (using CPU
+								// here). Retrieve RGB values of pixels and average them. Then grayscale and add
+								// to builder.
 								sb.append(ascii[(int) ((joinGrayPixels(image, x, y)) * 10 / 256)]);
 							}
 							sb.append("<br>");
@@ -177,6 +184,7 @@ public class Movie {
 
 					System.out.println("Loaded!");
 
+					// Using timer to delay label changes
 					timer = new MyTimer(show);
 					frame.getContentPane().add(timer.movie);
 					frame.getContentPane().setFocusable(true);
@@ -184,6 +192,8 @@ public class Movie {
 
 						@Override
 						public void keyPressed(KeyEvent event) {
+
+							// pause/unpause
 							if (event.getKeyCode() == KeyEvent.VK_A) {
 								if (check) {
 									timer.stop();
@@ -194,18 +204,28 @@ public class Movie {
 								}
 
 							}
+
+							// next frame
 							if (event.getKeyCode() == KeyEvent.VK_Q) {
 								timer.nextFrame();
 							}
+
+							// prev frame
 							if (event.getKeyCode() == KeyEvent.VK_W) {
 								timer.prevFrame();
 							}
+
+							// ~5 sec forwards
 							if (event.getKeyCode() == KeyEvent.VK_E) {
 								timer.skipForwards();
 							}
+
+							// ~5 sec backwards
 							if (event.getKeyCode() == KeyEvent.VK_R) {
 								timer.skipBackwards();
 							}
+
+							// Export current frame to a txt file
 							if (event.getKeyCode() == KeyEvent.VK_D) {
 								try {
 									timer.downloadCurrentFrame();
@@ -257,6 +277,7 @@ public class Movie {
 
 	}
 
+	// Grayscaled average of a certain group of pixels
 	public static double joinGrayPixels(BufferedImage image, int x, int y) {
 
 		int redSum = 0;
@@ -275,10 +296,12 @@ public class Movie {
 
 	}
 
+	// When the movie is over dispose of the frame
 	public static void movieEnd() {
 		frame.dispose();
 	}
 
+	// Resizing for different screens
 	static int screen(int original) {
 		int ready = (int) (original * ratio);
 		return ready;
