@@ -1,0 +1,14 @@
+====================================================================================
+Link to folder with jar and videos for testing:
+https://drive.google.com/drive/folders/1ta8CPPExGNt9KHl1QHcni2_eREiLZFLX?usp=sharing
+
+Config:
+
+hey:
+480:360 #3171
+10 @31 $1
+
+bees:
+1280:720 #2431
+10 @27 $2
+====================================================================================
